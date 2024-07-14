@@ -1,81 +1,56 @@
 from machine import Pin, SoftI2C
-from time import sleep
+from time import sleep as delay
 from esp32_i2c_lcd import I2cLcd
 
-
+# Setup LCD
 lcdI2C = SoftI2C(scl=Pin(22), sda=Pin(21), freq=100000)
 lcd = I2cLcd(lcdI2C, 39, 2, 16)
 
-
-button_up = Pin(25, Pin.IN)
-button_right = Pin(26, Pin.IN)
-button_left = Pin(12, Pin.IN)
-button_down = Pin(27, Pin.IN)
-
-led_pin1 = Pin(15, Pin.IN)
-led_pin2 = Pin(4, Pin.IN)
-led_pin3 = Pin(5, Pin.IN)
-led_pin4 = Pin(18, Pin.IN)
-
-button_state = [2, False]  
-
-
-def read_button() -> list:
-    return [button_up.value(), button_down.value(), button_right.value(), button_left.value()]
-
-
-def handle_button_press(current_state, previous_state) -> None:
-    global button_state
+class Button:
+    def __init__(self, button_pin1, button_pin2):
+        self.button_pins = [Pin(button_pin1, Pin.IN), Pin(button_pin2, Pin.IN)]
+        self.state = 0
+        self.previous_val = [0, 0]
     
-    if current_state[0] == 1 and previous_state[0] == 0:  # Menu select
-        if button_state[0] < 4:
-            button_state[0] += 1
+    def val(self):
+        return [pin.value() for pin in self.button_pins]
 
-        display_menu(button_state[0],button_state[1])
+    def debounce(self):
+        current_val = self.val()
+        delay(0.05)  # Debounce delay
+        delayed_val = self.val()
 
-    elif current_state[1] == 1 and previous_state[1] == 0:  # Menu select
-        if button_state[0] > 1:
-            button_state[0] -= 1
+        if current_val == delayed_val:
+            return current_val
+        
+        return self.previous_val
 
-        display_menu(button_state[0],button_state[1])
+    def handle(self):
+        current_val = self.debounce()
 
-    elif current_state[2] == 1 and previous_state[2] == 0:  # Toggle On/Off
-        button_state[1] = True
+        if current_val[0] == 1 and self.previous_val[0] == 0: 
+            if self.state < 4:
+                self.state += 1
 
-        display_menu(button_state[0],button_state[1])
+        if current_val[1] == 1 and self.previous_val[1] == 0: 
+            if self.state > 0:  
+                self.state -= 1
 
-    elif current_state[3] == 1 and previous_state[3] == 0:  # Toggle On/Off
-        button_state[1] = False
+        self.previous_val = current_val
 
-        display_menu(button_state[0],button_state[1])
-
-    
-def display_menu(menu, toggle) -> None:
-    lcd.move_to(0,0)
-    lcd.putstr(f"Led {menu} Selected")
-    lcd.move_to(0,1)
-    lcd.putstr(f"Toggle : {toggle}")
-
-
-def main() -> None:
-    previous_state = read_button()
-    lcd.clear()
-    lcd.move_to(4,0)
-    lcd.putstr("Welcome!")
-    sleep(2) 
+def main():
+    buttons = Button(12, 27)
+    last_state = -1 
 
     while True:
-        current_state = read_button()
-        
-        # Handle button press
-        if current_state != previous_state:
-            handle_button_press(current_state, previous_state)
-            previous_state = current_state
-        
+        buttons.handle()
 
-        sleep(0.2)  # Debounce delay
+        if buttons.state != last_state:
+            lcd.clear()
+            lcd.putstr(f"State: {buttons.state}")
+            last_state = buttons.state
 
+        delay(0.01)  # Main loop delay
 
 if __name__ == '__main__':
     main()
-
