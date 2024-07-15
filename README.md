@@ -14,7 +14,8 @@ Display keeps clearing so fast when value is changed, also i confused to impleme
 (I Need suggestions)
 
 
-## Work in Progress...
+## Work Status
+In progress
 
 ## Simulation Link (Wokwi) :
 
