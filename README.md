@@ -8,9 +8,6 @@ Multi button ESP32 LCD Interface to switch display when measuring distance (usin
 
 Add more buttons and feature, maybe also implement IoT
 
-#### Issues :
-Display keeps clearing so fast when value is changed, also i confused to implement more feature because too afraid there will be more delayed touch issues.
-
 (I Need suggestions)
 
 
