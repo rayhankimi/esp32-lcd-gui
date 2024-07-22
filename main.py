@@ -47,12 +47,15 @@ class Interaction:
         self.previous_temp = None
         self.previous_distance = None
 
-    def read_temp(self):
+    
+    @staticmethod
+    def read_temp():
         dht_sensor.measure()
         temp = dht_sensor.temperature()
         return temp
 
-    def read_distance(self):
+    @staticmethod
+    def read_distance():
         distance = hcsr04_sensor.distance_cm()
         return distance
 
@@ -115,6 +118,7 @@ def main():
 
         display.refresh()
         delay(0.01)  # Main loop delay
+
 
 if __name__ == '__main__':
     main()
