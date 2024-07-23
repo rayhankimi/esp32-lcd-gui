@@ -1,4 +1,5 @@
 import dht
+import network
 from machine import Pin, SoftI2C
 from time import sleep as delay
 from esp32_i2c_lcd import I2cLcd
@@ -47,6 +48,16 @@ class Interaction:
         self.previous_temp = None
         self.previous_distance = None
 
+    @staticmethod
+    def initWifi(ssid="Wokwi-GUEST",password=""):
+        wlan = network.WLAN(network.STA_IF)
+        wlan.active(True)
+        wlan.connect(ssid, password)
+        
+        return ssid
+
+        while not wlan.isconnected():
+            pass
     
     @staticmethod
     def read_temp():
@@ -75,11 +86,12 @@ class Interaction:
         lcd.putstr("^ Temp    LED v")
         self.previous_distance = distance
 
-    def display_control(self):
+    def display_connection(self):
+        ssid = self.initWifi()
         lcd.clear()
-        lcd.putstr("Not Implmntd yet")
+        lcd.putstr("Connected to: ")
         lcd.move_to(0, 1)
-        lcd.putstr("^ Distance")
+        lcd.putstr(ssid)
 
     def decide(self):
         if self.select == 2:
@@ -89,7 +101,7 @@ class Interaction:
             self.display_distance()
 
         else:
-            self.display_control()
+            self.display_connection()
 
     def refresh(self):
         if self.select == 2:
